@@ -18,49 +18,6 @@
       </main>
     </div>
 
-    <!-- 1. Vite TypeScript entry point -->
     <script type="module" src="/src/main.ts"></script>
-
-    <!-- 2. Browser DOM render script -->
-    <script>
-      let allProducts = [];
-
-      async function fetchAllProductData() {
-        const container = document.getElementById('product-container');
-        try {
-          const response = await fetch('https://dummyjson.com/products?limit=0');
-          const data = await response.json();
-
-          allProducts = data.products;
-          document.getElementById('total-count').textContent = allProducts.length;
-
-          renderProducts(allProducts);
-        } catch (error) {
-          container.textContent = `Error loading products: ${error.message}`;
-        }
-      }
-
-      function renderProducts(products) {
-        const container = document.getElementById('product-container');
-        
-        container.innerHTML = products.map(item => `
-          <div class="card" data-id="${item.id}">
-            <h3 class="item-title">${item.title}</h3>
-            <p style="color: var(--accent); font-weight: bold; margin: 6px 0;">
-              $${item.price.toFixed(2)} 
-              <span style="font-size: 0.85em; color: var(--text);">
-                (Rating: ⭐ ${item.rating} | Stock: ${item.stock})
-              </span>
-            </p>
-            <p style="margin: 8px 0; line-height: 1.4;">${item.description}</p>
-            <p style="font-size: 0.85em; color: var(--text);">
-              Category: <strong>${item.category}</strong> | Brand: <strong>${item.brand || 'Generic'}</strong>
-            </p>
-          </div>
-        `).join('');
-      }
-
-      document.addEventListener('DOMContentLoaded', fetchAllProductData);
-    </script>
   </body>
 </html>

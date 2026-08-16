@@ -1,6 +1,5 @@
 import { request } from '../services/apiService';
-
-import { discountCalculator } from '../utils/discountCalculator';
+import { calculateDiscountedPrice } from '../utils/discountCalculator';
 
 export interface IReview {
   rating: number;
@@ -84,7 +83,7 @@ export class Product implements IProduct {
   }
 
   getPriceWithDiscount(): number {
-    return discountCalculator(this.price, this.discountPercentage);
+    return calculateDiscountedPrice(this.price, this.discountPercentage);
   }
 
   displayDetails(): void {
@@ -108,18 +107,3 @@ export async function getProductById(id: number | string): Promise<Product> {
   const data = await request<IProduct>(`/${id}`);
   return new Product(data);
 }
-
-async function main() {
-  console.log('Fetching products using generic client...');
-  const products = await fetchProducts();
-
-  const first = products[0];
-  if (!first) {
-    throw new Error('No products available to display.');
-  }
-
-  first.displayDetails();
-  console.log(`Verified Final Price: $${first.getPriceWithDiscount()}`);
-}
-
-main().catch(console.error);
