@@ -1,3 +1,7 @@
+import { request } from '../services/apiService';
+
+import { discountCalculator } from '../utils/discountCalculator';
+
 export interface IReview {
   rating: number;
   comment: string;
@@ -51,52 +55,71 @@ export interface IProductResponse {
   limit: number;
 }
 
-// 1. Fetch function (Single network call)
-export async function fetchProducts(): Promise<IProduct[]> {
-  const response = await fetch('https://dummyjson.com/products');
+export class Product implements IProduct {
+  public id!: number;
+  public title!: string;
+  public description!: string;
+  public category!: string;
+  public price!: number;
+  public discountPercentage!: number;
+  public rating!: number;
+  public stock!: number;
+  public tags!: string[];
+  public brand?: string;
+  public sku!: string;
+  public weight!: number;
+  public dimensions!: IDimensions;
+  public warrantyInformation!: string;
+  public shippingInformation!: string;
+  public availabilityStatus!: string;
+  public reviews!: IReview[];
+  public returnPolicy!: string;
+  public minimumOrderQuantity!: number;
+  public meta!: IMeta;
+  public images!: string[];
+  public thumbnail!: string;
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch products: ${response.statusText}`);
+  constructor(data: IProduct) {
+    Object.assign(this, data);
   }
 
-  const data: IProductResponse = await response.json();
-  return data.products;
+  getPriceWithDiscount(): number {
+    return discountCalculator(this.price, this.discountPercentage);
+  }
+
+  displayDetails(): void {
+    console.log(`========================================`);
+    console.log(`${this.title} (${this.brand ?? 'No Brand'})`);
+    console.log(`Category:       ${this.category}`);
+    console.log(`Original Price: $${this.price.toFixed(2)} | Discount: ${this.discountPercentage}%`);
+    console.log(`Discounted:     $${this.getPriceWithDiscount().toFixed(2)}`);
+    console.log(`Rating:         ⭐ ${this.rating} / 5.0 (Stock: ${this.stock})`);
+    console.log(`Dimensions:     ${this.dimensions.width}W x ${this.dimensions.height}H x ${this.dimensions.depth}D`);
+    console.log(`========================================`);
+  }
 }
 
-// 2. Formatted detailed view
-function displayProductList(products: IProduct[]): void {
-  console.log('--- DETAILED PRODUCT LIST ---');
-  products.forEach((p, idx) => {
-    console.log(`${idx + 1}. ${p.title} (${p.brand ?? 'No Brand'}) - $${p.price}`);
-    console.log(`Dimensions: ${p.dimensions.width}W x ${p.dimensions.height}H x ${p.dimensions.depth}D`);
-  });
+export async function fetchProducts(): Promise<Product[]> {
+  const data = await request<IProductResponse>();
+  return data.products.map((item) => new Product(item));
 }
 
-// 3. Clean table view
-function displayProductTable(products: IProduct[]): void {
-  console.log('\n--- PRODUCT SUMMARY TABLE ---');
-  console.table(
-    products.map((p) => ({
-      ID: p.id,
-      Title: p.title,
-      Brand: p.brand ?? 'N/A',
-      Price: `$${p.price}`,
-      Rating: p.rating,
-      Stock: p.stock,
-    }))
-  );
+export async function getProductById(id: number | string): Promise<Product> {
+  const data = await request<IProduct>(`/${id}`);
+  return new Product(data);
 }
 
-// 4. Main runner function
 async function main() {
-  console.log('Fetching products...');
+  console.log('Fetching products using generic client...');
   const products = await fetchProducts();
-  console.log(`Loaded ${products.length} products successfully.`);
 
-  displayProductTable(products); // prints table grid
-  displayProductList(products);  // prints detailed log
+  const first = products[0];
+  if (!first) {
+    throw new Error('No products available to display.');
+  }
+
+  first.displayDetails();
+  console.log(`Verified Final Price: $${first.getPriceWithDiscount()}`);
 }
 
-main().catch((error) => {
-  console.error('Error in main runner:', error);
-});
+main().catch(console.error);
