@@ -1,7 +1,9 @@
-import { ApiError, NetworkError, ProductNotFoundError } from '../utils/errorHandler';
+import { NetworkError, ProductNotFoundError } from '../utils/errorHandler';
 
 const BASE_URL = 'https://dummyjson.com/products';
 
+// 1. Explicitly type endpoint as string
+// 2. Type the JSON response properly with a cast
 export async function request<T>(endpoint: string = ''): Promise<T> {
   let response: Response;
 
@@ -15,17 +17,16 @@ export async function request<T>(endpoint: string = ''): Promise<T> {
 
   if (!response.ok) {
     if (response.status === 404) {
-      throw new ProductNotFoundError(
-        `Product cannot be found at endpoint: ${endpoint}`,
-        response.status
-      );
+      throw new ProductNotFoundError();
     }
-
-    throw new ApiError(
+    throw new NetworkError(
       `API Error: ${response.status} ${response.statusText}`,
       response.status
     );
   }
 
-  return (await response.json()) as T;
+  // Use 'as T' so TypeScript safely acknowledges the returned generic type
+  const data = (await response.json()) as T;
+  return data;
 }
+

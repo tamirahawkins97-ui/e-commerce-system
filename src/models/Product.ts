@@ -1,5 +1,3 @@
-import { request } from '../services/apiService';
-
 export interface IReview {
   rating: number;
   comment: string;
@@ -53,40 +51,52 @@ export interface IProductResponse {
   limit: number;
 }
 
-export class Product implements IProduct {
-  public id!: number;
-  public title!: string;
-  public description!: string;
-  public category!: string;
-  public price!: number;
-  public discountPercentage!: number;
-  public rating!: number;
-  public stock!: number;
-  public tags!: string[];
-  public brand?: string;
-  public sku!: string;
-  public weight!: number;
-  public dimensions!: IDimensions;
-  public warrantyInformation!: string;
-  public shippingInformation!: string;
-  public availabilityStatus!: string;
-  public reviews!: IReview[];
-  public returnPolicy!: string;
-  public minimumOrderQuantity!: number;
-  public meta!: IMeta;
-  public images!: string[];
-  public thumbnail!: string;
+// 1. Fetch function (Single network call)
+export async function fetchProducts(): Promise<IProduct[]> {
+  const response = await fetch('https://dummyjson.com/products');
 
-  constructor(data: IProduct) {
-    Object.assign(this, data);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch products: ${response.statusText}`);
   }
 
-  getPriceWithDiscount(): number {
-    return this.price * (1 - this.discountPercentage / 100);
-  }
+  const data: IProductResponse = await response.json();
+  return data.products;
 }
 
-export async function fetchProducts(): Promise<Product[]> {
-  const data = await request<IProductResponse>();
-  return data.products.map((item) => new Product(item));
+// 2. Formatted detailed view
+function displayProductList(products: IProduct[]): void {
+  console.log('--- DETAILED PRODUCT LIST ---');
+  products.forEach((p, idx) => {
+    console.log(`${idx + 1}. ${p.title} (${p.brand ?? 'No Brand'}) - $${p.price}`);
+    console.log(`Dimensions: ${p.dimensions.width}W x ${p.dimensions.height}H x ${p.dimensions.depth}D`);
+  });
 }
+
+// 3. Clean table view
+function displayProductTable(products: IProduct[]): void {
+  console.log('\n--- PRODUCT SUMMARY TABLE ---');
+  console.table(
+    products.map((p) => ({
+      ID: p.id,
+      Title: p.title,
+      Brand: p.brand ?? 'N/A',
+      Price: `$${p.price}`,
+      Rating: p.rating,
+      Stock: p.stock,
+    }))
+  );
+}
+
+// 4. Main runner function
+async function main() {
+  console.log('Fetching products...');
+  const products = await fetchProducts();
+  console.log(`Loaded ${products.length} products successfully.`);
+
+  displayProductTable(products); // prints table grid
+  displayProductList(products);  // prints detailed log
+}
+
+main().catch((error) => {
+  console.error('Error in main runner:', error);
+});

@@ -3,20 +3,75 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-     <script type="module" src="/src/main.ts"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Accurate Product Store</title>
+    <title>vite-project</title>
   </head>
   <body>
-    <div id="app">
-      <header id="center">
-        <h1>Product Catalog</h1>
-        <h2>Available Inventory: <span id="total-count" class="counter">0</span> items</h2>
-      </header>
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Accurate Product Store</title>
+  <style>
+    body { font-family: system-ui, sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+    .card { border: 1px solid #f7f3f3; padding: 12px; margin-bottom: 10px; border-radius: 6px; }
+    .meta { font-size: 0.85em; color: #666; }
+    .price { font-weight: bold; color: green; }
+  </style>
+</head>
+<body>
 
-      <main id="product-container" style="padding: 20px; text-align: left;">
-        Loading products...
-      </main>
-    </div>
+  <h2>Product Store (<span id="total-count">0</span> items)</h2>
+  <div id="product-container">Loading...</div>
+
+  <script>
+    // 1. Single source of truth: holds the COMPLETE objects with all properties
+    let allProducts = [];
+
+    async function fetchAllProductData() {
+      try {
+        const response = await fetch('https://dummyjson.com/products?limit=0');
+        const data = await response.json();
+
+        // Save the raw objects directly without discarding any properties
+        allProducts = data.products;
+
+        // Display how many we got
+        document.getElementById('total-count').textContent = allProducts.length;
+
+        // 2. Render whatever properties you want from the full objects
+        renderProducts(allProducts);
+
+        // 3. You can now access ANY property whenever you need it:
+        console.log("First product all keys:", Object.keys(allProducts[0]));
+        console.log("Sample full item:", allProducts[0]);
+
+      } catch (error) {
+        document.getElementById('product-container').textContent = `Error loading: ${error.message}`;
+      }
+    }
+
+    function renderProducts(products) {
+      const container = document.getElementById('product-container');
+      
+      // Pull any property directly from the object: .id, .title, .price, .rating, .stock, .category
+      container.innerHTML = products.map(item => `
+        <div class="card" data-id="${item.id}">
+          <h3>${item.title}</h3>
+          <p class="price">$${item.price} <span class="meta">(Rating: ${item.rating} ★ | Stock: ${item.stock})</span></p>
+          <p>${item.description}</p>
+          <p class="meta">Category: <strong>${item.category}</strong> | Brand: <strong>${item.brand || 'N/A'}</strong></p>
+        </div>
+      `).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', fetchAllProductData);
+  </script>
+
+</body>
+</html>aded', loadProducts);
+  </script>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
