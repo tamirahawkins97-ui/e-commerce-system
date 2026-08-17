@@ -1,60 +1,84 @@
-import './style.css'
-import typescriptLogo from './assets/typescript.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import { setupCounter } from './counter.ts'
+import { request } from './services/apiService';
+import { Product, type IProductResponse } from './models/Product';
+import { formatErrorMessage } from './utils/errorHandler';
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-<section id="center">
-  <div class="hero">
-    <img src="${heroImg}" class="base" width="170" height="179">
-    <img src="${typescriptLogo}" class="framework" alt="TypeScript logo"/>
-    <img src="${viteLogo}" class="vite" alt="Vite logo" />
-  </div>
-  <div>
-    <h1>Get started</h1>
-    <p>Edit <code>src/main.ts</code> and save to test <code>HMR</code></p>
-  </div>
-  <button id="counter" type="button" class="counter"></button>
-</section>
+const container = document.getElementById('product-container');
+const totalCount = document.getElementById('total-count');
 
-<div class="ticks"></div>
+function renderProducts(products: Product[]): void {
+  if (!container) return;
 
-<section id="next-steps">
-  <div id="docs">
-    <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#documentation-icon"></use></svg>
-    <h2>Documentation</h2>
-    <p>Your questions, answered</p>
-    <ul>
-      <li>
-        <a href="https://vite.dev/" target="_blank">
-          <img class="logo" src="${viteLogo}" alt="" />
-          Explore Vite
-        </a>
-      </li>
-      <li>
-        <a href="https://www.typescriptlang.org" target="_blank">
-          <img class="button-icon" src="${typescriptLogo}" alt="">
-          Learn more
-        </a>
-      </li>
-    </ul>
-  </div>
-  <div id="social">
-    <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#social-icon"></use></svg>
-    <h2>Connect with us</h2>
-    <p>Join the Vite community</p>
-    <ul>
-      <li><a href="https://github.com/vitejs/vite" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#github-icon"></use></svg>GitHub</a></li>
-      <li><a href="https://chat.vite.dev/" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#discord-icon"></use></svg>Discord</a></li>
-      <li><a href="https://x.com/vite_js" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#x-icon"></use></svg>X.com</a></li>
-      <li><a href="https://bsky.app/profile/vite.dev" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#bluesky-icon"></use></svg>Bluesky</a></li>
-    </ul>
-  </div>
-</section>
+  container.innerHTML = products
+    .map((item) => {
+      const isGrocery = item.category.trim().toLowerCase() === 'groceries';
+      const taxRateLabel = isGrocery ? '3% Grocery Rate' : '4.75% Standard Rate';
 
-<div class="ticks"></div>
-<section id="spacer"></section>
-`
+      return `
+        <div class="card" data-id="${item.id}">
+          <div class="card-header">
+            <h3>${item.title}</h3>
+            <span class="category-badge ${isGrocery ? 'grocery' : 'standard'}">
+              ${item.category}
+            </span>
+          </div>
 
-setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
+          <!-- PRICING & DISCOUNT BREAKDOWN -->
+          <div class="pricing-breakdown">
+            <div class="price-row">
+              <span class="label">Original Price:</span>
+              <span class="original-price">$${item.price.toFixed(2)}</span>
+            </div>
+
+            <div class="price-row discount-row">
+              <span class="label">Discount (${item.discountPercentage}% OFF):</span>
+              <span class="discount-saved">-$${item.getDiscountAmount().toFixed(2)}</span>
+            </div>
+
+            <div class="price-row final-row">
+              <span class="label">Discounted Price:</span>
+              <span class="final-price">$${item.getPriceWithDiscount().toFixed(2)}</span>
+            </div>
+
+            <div class="price-row tax-row">
+              <span class="label">Estimated Tax (${taxRateLabel}):</span>
+              <span class="tax-amount">+$${item.getTax().toFixed(2)}</span>
+            </div>
+          </div>
+
+          <p class="description">${item.description}</p>
+          <p class="meta">
+            Brand: <strong>${item.brand ?? 'N/A'}</strong> | 
+            Rating: <strong>⭐ ${item.rating}</strong> | 
+            Stock: <strong>${item.stock} in stock</strong>
+          </p>
+        </div>
+      `;
+    })
+    .join('');
+}
+
+async function init(): Promise<void> {
+  try {
+    const data = await request<IProductResponse>();
+
+    // Transform raw API objects into OOP Product instances
+    const products: Product[] = data.products.map((raw) => new Product(raw));
+
+    if (totalCount) {
+      totalCount.textContent = String(products.length);
+    }
+
+    // Call OOP display method for console inspection
+    products.forEach((p) => p.displayDetails());
+
+    // Render formatted cards with calculations
+    renderProducts(products);
+  } catch (error) {
+    if (container) {
+      container.innerHTML = `<p class="error-state">${formatErrorMessage(error)}</p>`;
+    }
+    console.error('Initialization error:', error);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);

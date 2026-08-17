@@ -2,76 +2,116 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>vite-project</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Accurate Product Store</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        padding: 24px;
+        max-width: 850px;
+        margin: 0 auto;
+        background-color: #f8fafc;
+        color: #1e293b;
+      }
+      h2 {
+        border-bottom: 2px solid #e2e8f0;
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+      }
+      .card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        padding: 18px;
+        margin-bottom: 16px;
+        border-radius: 10px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+      }
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      .card-header h3 {
+        margin: 0;
+        font-size: 1.25rem;
+      }
+      .category-badge {
+        padding: 4px 10px;
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+      .category-badge.grocery {
+        background-color: #dcfce7;
+        color: #15803d;
+      }
+      .category-badge.standard {
+        background-color: #e0f2fe;
+        color: #0369a1;
+      }
+      .pricing-breakdown {
+        background-color: #f8fafc;
+        border: 1px solid #edf2f7;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin: 12px 0;
+      }
+      .price-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.95rem;
+        margin-bottom: 4px;
+      }
+      .original-price {
+        text-decoration: line-through;
+        color: #64748b;
+      }
+      .discount-saved {
+        color: #dc2626;
+        font-weight: 600;
+      }
+      .final-row {
+        border-top: 1px dashed #cbd5e1;
+        padding-top: 6px;
+        margin-top: 6px;
+        font-weight: 700;
+        font-size: 1.05rem;
+      }
+      .final-price {
+        color: #16a34a;
+      }
+      .tax-row {
+        font-size: 0.85rem;
+        color: #64748b;
+      }
+      .description {
+        color: #475569;
+        line-height: 1.5;
+        margin: 10px 0;
+      }
+      .meta {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-bottom: 0;
+      }
+      .error-state {
+        color: #b91c1c;
+        background: #fee2e2;
+        padding: 12px;
+        border-radius: 6px;
+      }
+    </style>
   </head>
   <body>
-    <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Accurate Product Store</title>
-  <style>
-    body { font-family: system-ui, sans-serif; padding: 20px; max-width: 800px; margin: auto; }
-    .card { border: 1px solid #f7f3f3; padding: 12px; margin-bottom: 10px; border-radius: 6px; }
-    .meta { font-size: 0.85em; color: #666; }
-    .price { font-weight: bold; color: green; }
-  </style>
-</head>
-<body>
+    <h2>Product Store (<span id="total-count">0</span> items)</h2>
 
-  <h2>Product Store (<span id="total-count">0</span> items)</h2>
-  <div id="product-container">Loading...</div>
+    <!-- Dynamic container loaded by main.ts -->
+    <div id="product-container">Loading products...</div>
 
-  <script>
-    // 1. Single source of truth: holds the COMPLETE objects with all properties
-    let allProducts = [];
-
-    async function fetchAllProductData() {
-      try {
-        const response = await fetch('https://dummyjson.com/products?limit=0');
-        const data = await response.json();
-
-        // Save the raw objects directly without discarding any properties
-        allProducts = data.products;
-
-        // Display how many we got
-        document.getElementById('total-count').textContent = allProducts.length;
-
-        // 2. Render whatever properties you want from the full objects
-        renderProducts(allProducts);
-
-        // 3. You can now access ANY property whenever you need it:
-        console.log("First product all keys:", Object.keys(allProducts[0]));
-        console.log("Sample full item:", allProducts[0]);
-
-      } catch (error) {
-        document.getElementById('product-container').textContent = `Error loading: ${error.message}`;
-      }
-    }
-
-    function renderProducts(products) {
-      const container = document.getElementById('product-container');
-      
-      // Pull any property directly from the object: .id, .title, .price, .rating, .stock, .category
-      container.innerHTML = products.map(item => `
-        <div class="card" data-id="${item.id}">
-          <h3>${item.title}</h3>
-          <p class="price">$${item.price} <span class="meta">(Rating: ${item.rating} ★ | Stock: ${item.stock})</span></p>
-          <p>${item.description}</p>
-          <p class="meta">Category: <strong>${item.category}</strong> | Brand: <strong>${item.brand || 'N/A'}</strong></p>
-        </div>
-      `).join('');
-    }
-
-    document.addEventListener('DOMContentLoaded', fetchAllProductData);
-  </script>
-
-</body>
-</html>aded', loadProducts);
-  </script>
-    <div id="app"></div>
+    <!-- Main TypeScript Entry Point -->
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
