@@ -1,4 +1,4 @@
-import { fetchProducts, type IProduct } from './src/models/Product';
+import { fetchProducts, type IProduct } from './models/Product';
 
 const container = document.getElementById('product-container');
 const totalCount = document.getElementById('total-count');

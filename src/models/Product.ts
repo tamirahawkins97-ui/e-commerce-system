@@ -1,5 +1,4 @@
 import { request } from '../services/apiService';
-import { calculateDiscountedPrice } from '../utils/discountCalculator';
 
 export interface IReview {
   rating: number;
@@ -83,27 +82,11 @@ export class Product implements IProduct {
   }
 
   getPriceWithDiscount(): number {
-    return calculateDiscountedPrice(this.price, this.discountPercentage);
-  }
-
-  displayDetails(): void {
-    console.log(`========================================`);
-    console.log(`${this.title} (${this.brand ?? 'No Brand'})`);
-    console.log(`Category:       ${this.category}`);
-    console.log(`Original Price: $${this.price.toFixed(2)} | Discount: ${this.discountPercentage}%`);
-    console.log(`Discounted:     $${this.getPriceWithDiscount().toFixed(2)}`);
-    console.log(`Rating:         ⭐ ${this.rating} / 5.0 (Stock: ${this.stock})`);
-    console.log(`Dimensions:     ${this.dimensions.width}W x ${this.dimensions.height}H x ${this.dimensions.depth}D`);
-    console.log(`========================================`);
+    return this.price * (1 - this.discountPercentage / 100);
   }
 }
 
 export async function fetchProducts(): Promise<Product[]> {
   const data = await request<IProductResponse>();
   return data.products.map((item) => new Product(item));
-}
-
-export async function getProductById(id: number | string): Promise<Product> {
-  const data = await request<IProduct>(`/${id}`);
-  return new Product(data);
 }
